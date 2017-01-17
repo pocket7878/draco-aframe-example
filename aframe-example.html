@@ -40,13 +40,6 @@
       // Module that exposes all the core funcionality of the Draco decoder.
       const DracoModule = Module;
 
-      let container;
-      let camera, scene, renderer;
-      let mouseX = 0, mouseY = 0;
-
-      let windowHalfX = window.innerWidth / 2;
-      let windowHalfY = window.innerHeight / 2;
-
           AFRAME.registerComponent('rabbit', {
               schema: {
                   color: {type: 'color', default: '#00A'}
@@ -70,6 +63,7 @@
                     bufferGeometry.computeVertexNormals();
                     geometry = new THREE.Mesh(bufferGeometry, material);
                   }
+                  
                   // Compute range of the geometry coordinates for proper rendering.
                   bufferGeometry.computeBoundingBox();
                   const sizeX = bufferGeometry.boundingBox.max.x - bufferGeometry.boundingBox.min.x;
@@ -88,6 +82,7 @@
                   geometry.castShadow = true;
                   geometry.receiveShadow = true;
                   geometry.name = "my_mesh";
+                  
                   var data = self.data;
                   var el = self.el;
                   self.geometry = geometry;
