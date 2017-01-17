@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>three.js webgl - loaders - Draco loader</title>
+    <meta charset="utf-8">
+    <script src="aframe-master.min.js"></script>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            font-family: Monospace;
+            background-color: #000;
+            color: #fff;
+            margin: 0px;
+            overflow: hidden;
+        }
+        #info {
+            color: #fff;
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            display: block;
+        }
+        #info a,
+        .button {
+            color: #f00;
+            font-weight: bold;
+            text-decoration: underline;
+            cursor: pointer
+        }
+    </style>
+</head>
+
+<body>
+    <script src="draco_decoder.js"></script>
+    <script src="DRACOLoader.js"></script>
+    <script>
+      // Module that exposes all the core funcionality of the Draco decoder.
+      const DracoModule = Module;
+
+      let container;
+      let camera, scene, renderer;
+      let mouseX = 0, mouseY = 0;
+
+      let windowHalfX = window.innerWidth / 2;
+      let windowHalfY = window.innerHeight / 2;
+
+          AFRAME.registerComponent('rabbit', {
+              schema: {
+                  color: {type: 'color', default: '#00A'}
+              },
+              /**
+               * Initial creation and setting of the mesh.
+               */
+              init: function () {
+                const reader = new FileReader();
+                var self = this;
+                reader.onload = function(e) {
+                  const dracoLoader = new THREE.DRACOLoader();
+                  const bufferGeometry = dracoLoader.decodeDracoFile(reader.result);
+                  var material = new THREE.MeshStandardMaterial({vertexColors: self.data.color});
+      
+                  let geometry;
+                  // Point cloud does not have face indices.
+                  if (bufferGeometry.index == null) {
+                    geometry = new THREE.Points(bufferGeometry, material);
+                  } else {
+                    bufferGeometry.computeVertexNormals();
+                    geometry = new THREE.Mesh(bufferGeometry, material);
+                  }
+                  // Compute range of the geometry coordinates for proper rendering.
+                  bufferGeometry.computeBoundingBox();
+                  const sizeX = bufferGeometry.boundingBox.max.x - bufferGeometry.boundingBox.min.x;
+                  const sizeY = bufferGeometry.boundingBox.max.y - bufferGeometry.boundingBox.min.y;
+                  const sizeZ = bufferGeometry.boundingBox.max.z - bufferGeometry.boundingBox.min.z;
+                  const diagonalSize = Math.sqrt(sizeX * sizeX + sizeY * sizeY + sizeZ * sizeZ);
+                  const scale = 1.0 / diagonalSize;
+                  const midX = (bufferGeometry.boundingBox.min.x + bufferGeometry.boundingBox.max.x) / 2;
+                  const midY = (bufferGeometry.boundingBox.min.y + bufferGeometry.boundingBox.max.y) / 2;
+                  const midZ = (bufferGeometry.boundingBox.min.z + bufferGeometry.boundingBox.max.z) / 2;
+      
+                  geometry.scale.multiplyScalar(scale);
+                  geometry.position.x = -midX * scale;
+                  geometry.position.y = -midY * scale;
+                  geometry.position.z = -midZ * scale;
+                  geometry.castShadow = true;
+                  geometry.receiveShadow = true;
+                  geometry.name = "my_mesh";
+                  var data = self.data;
+                  var el = self.el;
+                  self.geometry = geometry;
+                  el.setObject3D('mesh', self.geometry);
+                }
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', './bunny.drc', true);
+                xhr.responseType = 'blob';
+                xhr.onload = function(e) {
+                  reader.readAsArrayBuffer(this.response);
+                };
+                xhr.send();
+              }
+          });
+    </script>
+    <a-scene>
+      <a-sky color="#ECFFFF"></a-sky>
+      <a-entity rabbit position="0 1.25 -2"></a-entity>
+    </a-scene>
+</body>
+</html>
