@@ -51,9 +51,7 @@ THREE.DRACOLoader.prototype = {
          * Determine what type is this file, mesh or point cloud.
          */
         const geometryType = wrapper.GetEncodedGeometryType(buffer);
-        if (geometryType == DracoModule.TRIANGULAR_MESH) {
-        } else if (geometryType == DracoModule.POINT_CLOUD) {
-        } else {
+        if (geometryType != DracoModule.TRIANGULAR_MESH && geometryType != DracoModule.POINT_CLOUD) {
           const errorMsg = "Error: Unknown geometry type.";
           throw new Error(errorMsg);
         }
